@@ -1,0 +1,12 @@
+# 巨型可再生产物（tools/ 脚本可重建，勿入库）
+packages/
+runtime/
+dist/
+
+# 备份与缓存
+audio_old_huayan/
+__pycache__/
+*.pyc
+
+# 主机端临时环境
+.build/
