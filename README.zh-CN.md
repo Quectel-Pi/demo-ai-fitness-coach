@@ -1,6 +1,6 @@
 # 智能健身教练
 
-[English](README.md) | 中文
+[English](README.md) | 简体中文
 
 智能健身教练是基于 Quectel Pi（RK3576）的边缘 AI 健身应用。通过 USB 摄像头采集画面，在板载 NPU 上运行 YOLO11n-pose 实时追踪 17 个人体关键点，自动完成六种动作的计数与计时，并以中英双语语音进行教练播报——全程离线运行。
 
