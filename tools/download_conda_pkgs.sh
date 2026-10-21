@@ -4,7 +4,7 @@
 set -u
 BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/linux-aarch64"
 DEST="$(cd "$(dirname "$0")/.." && pwd)/packages/conda"
-LIST="${1:-/home/q/work/temp/tmp/fitness-coach/pkgs.txt}"
+LIST="${1:-pkgs.txt}"   # 依赖清单（python3 tools/resolve_conda_deps.py > pkgs.txt 生成）
 mkdir -p "$DEST"
 
 cd "$DEST" || exit 1

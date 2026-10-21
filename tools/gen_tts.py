@@ -7,10 +7,11 @@
   - 中文音色: zh-CN-XiaoxiaoNeural（晓晓，温暖亲切女声）
     英文音色: en-US-JennyNeural（Jenny，热情自然女声，社区评测英文最佳之一）
   - 热情感: 语速 +15%、音调 +8Hz（试听调优结论）
-  - 依赖（全部在统一临时目录，不装进宿主机）:
-      pip install --target /home/q/work/temp/tmp/fitness-coach/edge-tts-py edge-tts miniaudio
+  - 依赖（可装进临时目录，不污染宿主机）:
+      pip install --target ./edge-tts-py edge-tts miniaudio
+      PYTHONPATH=./edge-tts-py python3 tools/gen_tts.py [zh|en]
 
-用法: PYTHONPATH=/home/q/work/temp/tmp/fitness-coach/edge-tts-py python3 tools/gen_tts.py [zh|en]
+用法: PYTHONPATH=./edge-tts-py python3 tools/gen_tts.py [zh|en]
       不带参数 = 两种语言全部生成
 输出: ../audio/<lang>/<name>.wav (22050 等不合板端，paplay 自动重采样)
 """

@@ -82,6 +82,69 @@ adb shell /home/q/ai-fitness-coach-installer.run
 cd ~/ai-fitness-coach/code && ./run.sh
 ```
 
+## 从源码构建（开发者可选）
+
+> 普通用户直接下载 [Releases](https://github.com/Quectel-Pi/demo-ai-fitness-coach/releases) 的 `.run` 安装包即可，无需走本节。
+> 打包在**宿主机（x86 Linux）**上进行；开发板只负责安装运行。
+
+### 1. 克隆仓库并检查前置条件
+
+```bash
+git clone https://github.com/Quectel-Pi/demo-ai-fitness-coach.git
+cd demo-ai-fitness-coach
+
+go version          # Go ≥ 1.18（编译双击启动器）
+python3 --version && tar --version && xz --version
+adb devices         # 已连上开发板
+```
+
+### 2. 构建 Qt 运行时（runtime/，仓库不含此目录）
+
+界面依赖 PySide6/Qt6（aarch64、Python 3.13）。本仓库提供完整脚本：解析 conda-forge 依赖闭包 → 从清华镜像下载 → 解包合并：
+
+```bash
+python3 tools/resolve_conda_deps.py > pkgs.txt     # 解析依赖闭包清单（首次自动下载 repodata 缓存）
+bash tools/download_conda_pkgs.sh pkgs.txt         # 下载 conda 包到 packages/conda
+bash tools/make_runtime.sh                         # 解包合并 -> runtime/（py/ + lib/ + share/）
+```
+
+已在板上装过本应用时，也可以直接复用安装目录里的 `runtime/`。
+
+### 3. （可选）语音与模型再生成
+
+仓库已内置全部产物，以下仅在需要重制时执行：
+
+```bash
+# 语音包（audio/，中英两套 wav）：需 edge-tts + miniaudio（主机生成时联网）
+pip install --target ./edge-tts-py edge-tts miniaudio
+PYTHONPATH=./edge-tts-py python3 tools/gen_tts.py          # 不带参数 = 两种语言全部生成
+
+# 模型（models/，ONNX 已在仓库内）：需 rknn-toolkit2（opset19、fp16、目标 rk3576）
+python3 tools/convert_rknn.py
+```
+
+### 4. 一键打包
+
+```bash
+bash tools/make_run_pack.sh
+# 产物：dist/ai-fitness-coach-installer.run（约 215MB）
+```
+
+脚本自动完成：Go 交叉编译启动器 → 组装 code/models/audio/assets/runtime → tar.xz 压缩 → 拼 shell 自解压头。
+
+### 5. 部署到板子
+
+```bash
+adb push dist/ai-fitness-coach-installer.run /home/q/
+adb shell chown q:q /home/q/ai-fitness-coach-installer.run
+adb shell su - q -c '/home/q/ai-fitness-coach-installer.run'
+```
+
+安装完成后双击 `ai-fitness-coach/code/ai-fitness-coach` 启动。
+
+> **日常改代码**：无需重新打包，直接把改动的 `code/*.py` 推到板上安装目录
+> `~/ai-fitness-coach/code/` 即生效。
+
 ## 使用方法
 
 1. 打开动作列表选择动作 — 点任意条目旁的 **▶** 可预览该动作的示范视频

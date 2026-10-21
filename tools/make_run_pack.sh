@@ -7,11 +7,12 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$ROOT/dist"
-TMP="/home/q/work/temp/tmp/fitness-runpack"   # 临时产物按规则放统一临时目录
+TMP="${FIT_PACK_TMP:-/home/q/work/temp/tmp/fitness-runpack}"   # 临时产物目录（可用环境变量覆盖）
 NAME="ai-fitness-coach-installer.run"
 
 # 不 rm -rf 临时目录（安全策略拦截），固定文件名覆盖写即可
-mkdir -p "$TMP" "$DIST"
+mkdir -p "$TMP" "$DIST" 2>/dev/null || TMP="$(mktemp -d)"    # 默认路径不可写时回退系统临时目录
+mkdir -p "$DIST"
 
 # 1) payload: tar.xz（xz 多线程加速，~1GB runtime 压到 200MB 级）
 echo "==> 打包 payload (tar.xz, 多线程)..."

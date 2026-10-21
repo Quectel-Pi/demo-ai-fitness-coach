@@ -2,13 +2,24 @@
 """解析 conda-forge pyside6 (linux-aarch64, 目标板上 Python 3.13) 的依赖闭包，输出下载清单。
 
 不安装任何东西到宿主机，只输出 文件名\t大小 列表。
-用法: python3 tools/resolve_conda_deps.py > /tmp/pkgs.txt
+用法: python3 tools/resolve_conda_deps.py > pkgs.txt
 """
 import json
+import os
 import re
 import sys
+import urllib.request
 
-REPO = json.load(open("/home/q/work/temp/tmp/fitness-coach/cf-repo.json"))
+# conda-forge aarch64 repodata；缓存到脚本旁（首次联网下载，之后离线复用）
+REPO_URL = "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/linux-aarch64/repodata.json"
+CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".cf-repodata.json")
+
+if os.path.exists(CACHE):
+    REPO = json.load(open(CACHE))
+else:
+    print(f"# downloading repodata: {REPO_URL}", file=sys.stderr)
+    urllib.request.urlretrieve(REPO_URL, CACHE)
+    REPO = json.load(open(CACHE))
 ALL = {**REPO.get("packages", {}), **REPO.get("packages.conda", {})}
 
 BY_NAME = {}

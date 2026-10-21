@@ -82,6 +82,69 @@ Double-click `code/ai-fitness-coach` in the file manager, or:
 cd ~/ai-fitness-coach/code && ./run.sh
 ```
 
+## Build from Source (optional, for developers)
+
+> Regular users can simply download the `.run` installer from [Releases](https://github.com/Quectel-Pi/demo-ai-fitness-coach/releases) — this section is not needed.
+> Packaging happens on an **x86 Linux host**; the board only installs and runs.
+
+### 1. Clone the repo and check prerequisites
+
+```bash
+git clone https://github.com/Quectel-Pi/demo-ai-fitness-coach.git
+cd demo-ai-fitness-coach
+
+go version          # Go ≥ 1.18 (launcher cross-compile)
+python3 --version && tar --version && xz --version
+adb devices         # board connected
+```
+
+### 2. Build the Qt runtime (runtime/, not included in the repo)
+
+The GUI depends on PySide6/Qt6 (aarch64, Python 3.13). This repo ships the full pipeline: resolve the conda-forge dependency closure → download from the TUNA mirror → unpack and merge:
+
+```bash
+python3 tools/resolve_conda_deps.py > pkgs.txt     # dependency closure list (repodata auto-cached on first run)
+bash tools/download_conda_pkgs.sh pkgs.txt         # download conda packages to packages/conda
+bash tools/make_runtime.sh                         # unpack & merge -> runtime/ (py/ + lib/ + share/)
+```
+
+If the app is already installed on a board, the installed `runtime/` can be reused directly.
+
+### 3. (Optional) Regenerate voice and models
+
+The repo ships all artifacts; only needed for re-building them:
+
+```bash
+# Voice packs (audio/, zh + en wavs): requires edge-tts + miniaudio (online during host-side generation)
+pip install --target ./edge-tts-py edge-tts miniaudio
+PYTHONPATH=./edge-tts-py python3 tools/gen_tts.py          # no arg = generate both languages
+
+# Models (models/, ONNX already in the repo): requires rknn-toolkit2 (opset 19, fp16, target rk3576)
+python3 tools/convert_rknn.py
+```
+
+### 4. One-command packaging
+
+```bash
+bash tools/make_run_pack.sh
+# Output: dist/ai-fitness-coach-installer.run (~215 MB)
+```
+
+The script cross-compiles the Go launcher, assembles code/models/audio/assets/runtime, compresses with tar.xz and appends a self-extracting shell header.
+
+### 5. Deploy to the board
+
+```bash
+adb push dist/ai-fitness-coach-installer.run /home/q/
+adb shell chown q:q /home/q/ai-fitness-coach-installer.run
+adb shell su - q -c '/home/q/ai-fitness-coach-installer.run'
+```
+
+Double-click `ai-fitness-coach/code/ai-fitness-coach` to launch.
+
+> **Iterating on code**: no need to repackage — push changed `code/*.py` straight to the
+> install dir on the board and they take effect.
+
 ## Usage
 
 1. Open the action list and select an exercise — tap **▶** next to any entry to preview its demonstration video

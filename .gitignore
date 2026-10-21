@@ -10,3 +10,6 @@ __pycache__/
 
 # 主机端临时环境
 .build/
+edge-tts-py/
+pkgs.txt
+tools/.cf-repodata.json
